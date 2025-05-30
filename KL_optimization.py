@@ -1,18 +1,18 @@
 import numpy as np
 
-def alternating_kl_projection_log_nd(pi_hat, marginals, num_iters=100, replace_zeros=True, epsilon=1e-10):
+def alternating_kl_projection(pi_hat, marginals, num_iters=100, replace_zeros=True, epsilon=1e-10):
     """
-    Alternating KL projection in log-domain for N-dimensional tensor, with explicit marginal reshaping.
+    Alternating KL projection in dual domain for L-dimensional plan
 
     Parameters:
-        pi_hat: Initial reference tensor, shape (d1, d2, ..., dn)
-        marginals: List of target marginals, one for each axis (each is a 1D array)
+        pi_hat: Initial plan, tensor shape (I1, I2, ..., IL)
+        marginals: Marginal distributions, list of one-dimensional arrays
         num_iters: Number of alternating projections
         replace_zeros: If True, replaces zeros in pi_hat with epsilon
-        epsilon: Small value to replace zeros with (default: 1e-10)
+        epsilon: Small value to replace zeros with (default: 1e-10), scalar
 
     Returns:
-        pi: Final transport plan after exponentiating log-theta, same shape as pi_hat
+        pi: Projection, same shape as pi_hat
     """
     # Step 1: Replace zeros with epsilon (if replace_zeros is True)
     if replace_zeros:
@@ -21,7 +21,7 @@ def alternating_kl_projection_log_nd(pi_hat, marginals, num_iters=100, replace_z
     # Step 2: Rescale pi_hat to ensure it is a valid probability distribution (sums to 1)
     pi_hat /= np.sum(pi_hat)
 
-    # Step 3: Convert to log-domain
+    # Step 3: Convert to dual domain
     log_theta = np.log(pi_hat)
     ndim = log_theta.ndim
 
@@ -41,7 +41,7 @@ def alternating_kl_projection_log_nd(pi_hat, marginals, num_iters=100, replace_z
             np.log(marginals[axis]).reshape(shape) - np.log(sum_given_axis).reshape(shape)
         )
 
-    # Step 5: Exponentiate to get the final transport plan
+    # Step 5: Convert to primal domain
     pi = np.exp(log_theta)
 
     return pi
